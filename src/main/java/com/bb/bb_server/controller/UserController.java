@@ -1,5 +1,7 @@
 package com.bb.bb_server.controller;
 
+import com.bb.bb_server.domain.User;
+import com.bb.bb_server.dto.LoginRequestDTO;
 import com.bb.bb_server.dto.SignUpDTO;
 import com.bb.bb_server.dto.UserDTO;
 import com.bb.bb_server.service.UserService;
@@ -8,13 +10,19 @@ import com.bb.bb_server.validator.CheckNicknameValidator;
 import com.bb.bb_server.validator.CheckPasswordValidator;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,6 +58,44 @@ public class UserController {
         return ResponseEntity.ok(signUpDTO);
     }
 
+    @ApiOperation(value = "Login POST", notes = "POST 방식으로 로그인")
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        try {
+            UserDTO userDTO = userService.login(loginRequestDTO);
+            return ResponseEntity.ok(userDTO);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "Logout POST", notes="POST 방식으로 로그아웃" )
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            new SecurityContextLogoutHandler().logout(request, response, authentication);
+        }
+        return ResponseEntity.ok("{\"message\": \"Logout success\"}");
+    }
+
+    @ApiOperation(value = "User DELETE", notes="DELETE 방식으로 회원 탈퇴" )
+    @DeleteMapping("/delete/{userId}")
+    public ResponseEntity<String> deleteUserById(@PathVariable Long userId, @RequestParam String password) {
+        try {
+            boolean passwordMatches = userService.checkPassword(userId, password);
+
+            if(!passwordMatches){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"message\": \"Password does not match.\"}");
+            }
+            userService.deleteById(userId);
+            return ResponseEntity.ok().body("{\"message\": \"User deletion successful.\"}");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"message\": \"User deletion failed.\"}");
+        }
+    }
+
+    // 파일로 따로 뺄건지 다시 생각해보기
     private Map<String, String> getErrorMap(BindingResult bindingResult) {
         Map<String, String> errorMap = new HashMap<>();
         for (FieldError error : bindingResult.getFieldErrors()) {
