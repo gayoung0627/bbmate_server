@@ -54,8 +54,8 @@ public class UserService{
                 .password(user.getPassword())
                 .username(user.getUsername())
                 .nickname(user.getNickname())
-                .role(user.getRole())
                 .image_url(user.getImageUrl())
+                .role(user.getRole())
                 .build();
 
         return userDTO;

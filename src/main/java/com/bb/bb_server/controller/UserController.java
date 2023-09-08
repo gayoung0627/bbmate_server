@@ -1,6 +1,5 @@
 package com.bb.bb_server.controller;
 
-import com.bb.bb_server.domain.User;
 import com.bb.bb_server.dto.LoginRequestDTO;
 import com.bb.bb_server.dto.SignUpDTO;
 import com.bb.bb_server.dto.UserDTO;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.WebDataBinder;

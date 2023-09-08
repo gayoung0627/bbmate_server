@@ -11,7 +11,7 @@ import java.util.*;
 
 @Entity
 @Getter @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
 @Table(name = "user")
 public class User extends BaseEntity implements UserDetails {
@@ -53,9 +53,6 @@ public class User extends BaseEntity implements UserDetails {
         this.role = role;
     }
 
-    public void changeImageUrl(String imageUrl){
-        this.imageUrl = imageUrl;
-    }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
