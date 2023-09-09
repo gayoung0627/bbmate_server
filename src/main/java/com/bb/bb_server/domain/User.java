@@ -53,6 +53,12 @@ public class User extends BaseEntity implements UserDetails {
         this.role = role;
     }
 
+    public void userUpdate(String password, String nickname, String imageUrl){
+        this.password = password;
+        this.nickname = nickname;
+        this.imageUrl = imageUrl;
+    }
+
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();

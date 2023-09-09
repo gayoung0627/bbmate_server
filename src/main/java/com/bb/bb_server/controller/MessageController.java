@@ -9,9 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
@@ -31,19 +29,19 @@ public class MessageController {
     @GetMapping("/received/{userId}")
     public ResponseEntity<List<MessageDTO>> getReceivedMessages(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
         List<MessageDTO> receivedMessages = messageService.receivedMessage(user);
         return ResponseEntity.ok(receivedMessages);
     }
 
     @ApiOperation(value = "받은 메시지 삭제", notes = "받은 메시지 삭제")
-    @DeleteMapping("/received/{messageId}/{userId}")
+    @DeleteMapping("/received/{userId}/{messageId}")
     public ResponseEntity<String> deleteReceivedMessage(
-            @PathVariable Long messageId,
-            @PathVariable Long userId) {
+            @PathVariable Long userId,
+            @PathVariable Long messageId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String result = messageService.deleteMessageByReceiver(messageId, user);
         return ResponseEntity.ok(result);
@@ -53,19 +51,19 @@ public class MessageController {
     @GetMapping("/sent/{userId}")
     public ResponseEntity<List<MessageDTO>> getSentMessages(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         List<MessageDTO> sentMessages = messageService.sentMessages(user);
         return ResponseEntity.ok(sentMessages);
     }
 
     @ApiOperation(value = "보낸 메시지 삭제", notes = "보낸 메시지 삭제")
-    @DeleteMapping("/sent/{messageId}/{userId}")
+    @DeleteMapping("/sent//{userId}/{messageId}")
     public ResponseEntity<String> deleteSentMessage(
-            @PathVariable Long messageId,
-            @PathVariable Long userId) {
+            @PathVariable Long userId,
+            @PathVariable Long messageId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String result = messageService.deleteSentMessage(messageId, user);
         return ResponseEntity.ok(result);

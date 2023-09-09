@@ -8,9 +8,11 @@ import com.bb.bb_server.repository.UserRepository;
 import com.bb.bb_server.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,24 @@ public class UserService{
         return userRepository.save(user);
     }
 
+    public User updateUser(Long userId, UserDTO userDTO) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            user.userUpdate(
+                    passwordEncoder.encode(userDTO.getPassword()),
+                    userDTO.getNickname(),
+                    userDTO.getImageUrl()
+            );
+
+            return userRepository.save(user);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found.", e);
+        }
+    }
+
+
     public UserDTO login(LoginRequestDTO loginRequestDTO){
         User user = userRepository.findByEmail(loginRequestDTO.getEmail())
                 .orElseThrow(()-> new IllegalArgumentException("Email not registered."));
@@ -54,7 +74,7 @@ public class UserService{
                 .password(user.getPassword())
                 .username(user.getUsername())
                 .nickname(user.getNickname())
-                .image_url(user.getImageUrl())
+                .imageUrl(user.getImageUrl())
                 .role(user.getRole())
                 .build();
 
@@ -69,6 +89,11 @@ public class UserService{
         return userRepository.findById(userId)
                 .map(user -> passwordEncoder.matches(password, user.getPassword()))
                 .orElse(false);
+    }
+
+    public User findUserByNickname(String nickname) {
+        return userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new IllegalArgumentException("User not found by nickname: " + nickname));
     }
 
 

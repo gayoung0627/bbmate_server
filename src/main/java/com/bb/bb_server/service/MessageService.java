@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +38,7 @@ public class MessageService {
 
         messageRepository.save(message);
         return MessageDTO.builder()
+                .id(message.getId())
                 .content(message.getContent())
                 .senderNickName(sender.getNickname())
                 .receiverNickName(receiver.getNickname())
@@ -52,6 +52,7 @@ public class MessageService {
         return messages.stream()
                 .filter(message -> !message.isDeletedByReceiver())
                 .map(message -> MessageDTO.builder()
+                        .id(message.getId())
                         .content(message.getContent())
                         .senderNickName(message.getSender().getNickname())
                         .receiverNickName(message.getReceiver().getNickname())
@@ -64,18 +65,25 @@ public class MessageService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message not found."));
 
-        if (!user.equals(message.getSender())) {
+        if (!user.equals(message.getReceiver())) {
             throw new IllegalArgumentException("User information does not match.");
         }
 
         if (!message.isDeletedByReceiver()) {
             message.deleteByReceiver();
-            messageRepository.save(message);
-            return message.isDeletedBySender() ? "Message deleted from both sides" : "Message deleted from one side";
+
+            if (message.isDeletedBySender()) {
+                messageRepository.delete(message);
+                return "Message deleted from both sides";
+            } else {
+                messageRepository.save(message);
+                return "Message deleted from one side.";
+            }
         } else {
             return "The message has already been deleted.";
         }
     }
+
 
     @Transactional(readOnly = true)
     public List<MessageDTO> sentMessages(User user) {
@@ -84,6 +92,7 @@ public class MessageService {
         return messages.stream()
                 .filter(message -> !message.isDeletedBySender())
                 .map(message -> MessageDTO.builder()
+                        .id(message.getId())
                         .content(message.getContent())
                         .senderNickName(message.getSender().getNickname())
                         .receiverNickName(message.getReceiver().getNickname())
@@ -92,7 +101,7 @@ public class MessageService {
     }
 
     @Transactional
-    public String deleteSentMessage(long messageId, User user) {
+    public String deleteSentMessage(Long messageId, User user) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message not found."));
 

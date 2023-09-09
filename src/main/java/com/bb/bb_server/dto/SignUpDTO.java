@@ -2,7 +2,6 @@ package com.bb.bb_server.dto;
 
 import com.bb.bb_server.domain.Role;
 import com.bb.bb_server.domain.User;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

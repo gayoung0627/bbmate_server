@@ -1,5 +1,6 @@
 package com.bb.bb_server.controller;
 
+import com.bb.bb_server.domain.User;
 import com.bb.bb_server.dto.LoginRequestDTO;
 import com.bb.bb_server.dto.SignUpDTO;
 import com.bb.bb_server.dto.UserDTO;
@@ -45,7 +46,7 @@ public class UserController {
     @ApiOperation(value = "Signup POST", notes="POST 방식으로 회원가입")
     @PostMapping("/signup")
     @ResponseBody
-    public ResponseEntity<?> signup(@Valid @RequestBody SignUpDTO signUpDTO, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<?> signup(@Valid @RequestBody SignUpDTO signUpDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(getErrorMap(bindingResult));
         }
@@ -54,6 +55,18 @@ public class UserController {
         }
         userService.create(signUpDTO);
         return ResponseEntity.ok(signUpDTO);
+    }
+
+    @ApiOperation(value="Signup email duplicate  check POST", notes = "POST 방식으로 이메일 중복확인")
+    @GetMapping("/signup/email/{email}/exists")
+    public ResponseEntity<Boolean> checkEmailDuplicate(@PathVariable String email) {
+        return ResponseEntity.ok(userService.checkEmailDuplication(email));
+    }
+
+    @ApiOperation(value="Signup nickname duplicate  check POST", notes = "POST 방식으로 닉네임 중복확인")
+    @GetMapping("/signup/nickname/{nickname}/exists")
+    public ResponseEntity<Boolean> checkNicknameDuplicate(@PathVariable String nickname) {
+        return ResponseEntity.ok(userService.checkNicknameDuplication(nickname));
     }
 
     @ApiOperation(value = "Login POST", notes = "POST 방식으로 로그인")
@@ -77,6 +90,17 @@ public class UserController {
         return ResponseEntity.ok("{\"message\": \"Logout success\"}");
     }
 
+    @ApiOperation(value = "Update User PUT", notes = "PUT 방식으로 사용자 정보 업데이트")
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
+        try {
+            userService.updateUser(userId, userDTO);
+            return ResponseEntity.ok(userDTO);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @ApiOperation(value = "User DELETE", notes="DELETE 방식으로 회원 탈퇴" )
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<String> deleteUserById(@PathVariable Long userId, @RequestParam String password) {
@@ -90,6 +114,17 @@ public class UserController {
             return ResponseEntity.ok().body("{\"message\": \"User deletion successful.\"}");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"message\": \"User deletion failed.\"}");
+        }
+    }
+
+    @ApiOperation(value = "Find User by Nickname GET", notes = "GET 방식으로 닉네임으로 회원 정보 찾기")
+    @GetMapping("/findUser/{nickname}")
+    public ResponseEntity<?> findUserByNickname(@PathVariable String nickname) {
+        try {
+            User user = userService.findUserByNickname(nickname);
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found by nickname: " + nickname);
         }
     }
 
