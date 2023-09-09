@@ -32,20 +32,12 @@ public class Comment extends BaseEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parentComment;
-
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Comment> childComments = new ArrayList<>();
-
     @Builder
-    public Comment(Long id, String content, Post post, User user, Comment parentComment) {
+    public Comment(Long id, String content, Post post, User user) {
         this.id = id;
         this.content = content;
         this.post = post;
         this.user = user;
-        this.parentComment = parentComment;
     }
 
 }

@@ -58,7 +58,7 @@ public class MessageController {
     }
 
     @ApiOperation(value = "보낸 메시지 삭제", notes = "보낸 메시지 삭제")
-    @DeleteMapping("/sent//{userId}/{messageId}")
+    @DeleteMapping("/sent/{userId}/{messageId}")
     public ResponseEntity<String> deleteSentMessage(
             @PathVariable Long userId,
             @PathVariable Long messageId) {
