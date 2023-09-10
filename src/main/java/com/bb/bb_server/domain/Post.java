@@ -67,7 +67,14 @@ public class Post extends BaseEntity {
         this.content = content;
         this.user = user;
     }
-    public void updatePost(String title, PostStatus status, int maxParticipants, String prefer, LocalDateTime gameDate, Stadium stadium, String content) {
+
+    public void updatePost(String title,
+                           PostStatus status,
+                           int maxParticipants,
+                           String prefer,
+                           LocalDateTime gameDate,
+                           Stadium stadium,
+                           String content) {
         this.title = title;
         this.status = status;
         this.maxParticipants = maxParticipants;

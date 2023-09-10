@@ -9,6 +9,7 @@ import com.bb.bb_server.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +70,7 @@ public class UserService{
         String token = tokenProvider.createToken(user.getUsername());
 
         UserDTO userDTO = UserDTO.builder()
-                .accessToken(token)
+                .token(token)
                 .email(user.getEmail())
                 .password(user.getPassword())
                 .username(user.getUsername())
@@ -94,6 +95,16 @@ public class UserService{
     public User findUserByNickname(String nickname) {
         return userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new IllegalArgumentException("User not found by nickname: " + nickname));
+    }
+
+    public Long getUserIdFromAuthentication(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow();
+        if (user != null) {
+            return user.getId(); // 사용자 ID 반환
+        } else {
+            throw new IllegalArgumentException("User not found");
+        }
     }
 
 

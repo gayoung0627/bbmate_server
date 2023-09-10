@@ -43,6 +43,7 @@ public class TokenProvider {
 
     // JWT 토큰에서 인증 정보 조회
     public Authentication getAuthentication(String token) {
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(this.validateAndGetUserId(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }

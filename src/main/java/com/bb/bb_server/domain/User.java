@@ -21,7 +21,7 @@ public class User extends BaseEntity implements UserDetails {
     private Long id;
 
     @NotNull
-    @Column(length = 30)
+    @Column(length = 30, unique = true)
     private String username;
 
     @NotNull
@@ -41,6 +41,9 @@ public class User extends BaseEntity implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "user")
+    private List<Meeting> meetings;
 
     @Builder
     public User(Long id, String username, String email, String password, String nickname, String imageUrl, Role role){

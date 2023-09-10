@@ -41,17 +41,18 @@ public class CommentService {
     //단건 조회만 됨
     @Transactional(readOnly = true)
     public List<CommentDTO> getAllCommentsByPostId(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
-        List<Comment> comments = post.getComments();
+        List<Comment> comments = commentRepository.findAllByPostId(postId);
 
         return comments.stream().map(CommentDTO::toDTO).collect(Collectors.toList());
     }
 
     @Transactional
     public CommentDTO createComment(CommentDTO commentDTO) {
+        // 프론트 연결하면서 다시 체크
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
         Long postId = commentDTO.getPostId();
-        Long userId = commentDTO.getUserId();
+        commentDTO.setUserId(userId);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
@@ -72,8 +73,16 @@ public class CommentService {
 
     @Transactional
     public CommentDTO updateComment(Long id, CommentDTO commentDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+
         Comment existingComment = commentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found with id: " + id));
+
+        if (!userId.equals(existingComment.getUser().getId())) {
+            throw new IllegalArgumentException("You are not authorized to update this comment");
+        }
+
         existingComment.setContent(commentDTO.getContent());
         Comment updatedComment = commentRepository.save(existingComment);
         return CommentDTO.toDTO(updatedComment);
@@ -81,7 +90,27 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found with id: " + id));
+
+        if (!userId.equals(comment.getUser().getId())) {
+            throw new IllegalArgumentException("You are not authorized to delete this comment");
+        }
+
         commentRepository.deleteById(id);
+    }
+
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow();
+        if (user != null) {
+            return user.getId();
+        } else {
+            throw new IllegalArgumentException("User not found");
+        }
     }
 
 

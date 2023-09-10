@@ -8,6 +8,8 @@ import com.bb.bb_server.dto.PostDTO;
 import com.bb.bb_server.repository.PostRepository;
 import com.bb.bb_server.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,9 @@ public class PostService {
     // POST 생성
     @Transactional
     public PostDTO createPost(PostDTO postDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+        postDTO.setUserId(userId);
         Post post = postDTO.toEntity();
         User user = userRepository.findById(postDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -49,8 +54,15 @@ public class PostService {
     // POST 수정
     @Transactional
     public PostDTO updatePost(Long id, PostDTO postDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+
         Post existingPost = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + id));
+
+        if (!userId.equals(existingPost.getUser().getId())) {
+            throw new IllegalArgumentException("You are not authorized to update this post");
+        }
 
         existingPost.updatePost(
                 postDto.getTitle(),
@@ -69,7 +81,27 @@ public class PostService {
     // POST 삭제
     @Transactional
     public void deletePost(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + id));
+
+        if (!userId.equals(post.getUser().getId())) {
+            throw new IllegalArgumentException("You are not authorized to delete this post");
+        }
+
         postRepository.deleteById(id);
+    }
+
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow();
+        if (user != null) {
+            return user.getId();
+        } else {
+            throw new IllegalArgumentException("User not found");
+        }
     }
 
 

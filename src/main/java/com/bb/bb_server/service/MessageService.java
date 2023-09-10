@@ -6,10 +6,11 @@ import com.bb.bb_server.dto.MessageDTO;
 import com.bb.bb_server.repository.MessageRepository;
 import com.bb.bb_server.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,11 +23,14 @@ public class MessageService {
 
     @Transactional
     public MessageDTO write(MessageDTO messageDTO) {
-        User receiver = userRepository.findByNickname(messageDTO.getReceiverNickName())
-                .orElseThrow(() -> new EntityNotFoundException("Receiver not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String senderNickname = authentication.getName();
 
-        User sender = userRepository.findByNickname(messageDTO.getSenderNickName())
-                .orElseThrow(() -> new EntityNotFoundException("Sender not found"));
+        User receiver = userRepository.findByNickname(messageDTO.getReceiverNickName())
+                .orElseThrow(() -> new IllegalArgumentException("Receiver not found"));
+
+        User sender = userRepository.findByNickname(senderNickname)
+                .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
 
         Message message = Message.builder()
                 .receiver(receiver)
@@ -62,11 +66,14 @@ public class MessageService {
 
     @Transactional
     public String deleteMessageByReceiver(long messageId, User user) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message not found."));
 
-        if (!user.equals(message.getReceiver())) {
-            throw new IllegalArgumentException("User information does not match.");
+        if (!userId.equals(message.getReceiver().getId())) {
+            throw new IllegalArgumentException("You are not authorized to delete this message");
         }
 
         if (!message.isDeletedByReceiver()) {
@@ -102,11 +109,14 @@ public class MessageService {
 
     @Transactional
     public String deleteSentMessage(Long messageId, User user) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = getUserIdFromAuthentication(authentication);
+
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message not found."));
 
-        if (!user.equals(message.getSender())) {
-            throw new IllegalArgumentException("User information does not match.");
+        if (!userId.equals(message.getSender().getId())) {
+            throw new IllegalArgumentException("You are not authorized to delete this message");
         }
 
         message.deleteBySender();
@@ -115,5 +125,15 @@ public class MessageService {
             return "Deleted from both sides";
         }
         return "Deleted from one side";
+    }
+
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow();
+        if (user != null) {
+            return user.getId();
+        } else {
+            throw new IllegalArgumentException("User not found");
+        }
     }
 }

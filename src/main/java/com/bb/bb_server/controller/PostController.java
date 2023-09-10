@@ -1,6 +1,8 @@
 package com.bb.bb_server.controller;
 
+import com.bb.bb_server.dto.CommentDTO;
 import com.bb.bb_server.dto.PostDTO;
+import com.bb.bb_server.service.CommentService;
 import com.bb.bb_server.service.PostService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final CommentService commentService;
+
 
     @ApiOperation(value = "All Posts GET", notes = "GET 방식으로 모든 Post 조회")
     @GetMapping()
@@ -50,6 +54,13 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @ApiOperation(value = "All Comments for a Post GET", notes = "GET 방식으로 특정 Post에 대한 모든 Comment 조회")
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentDTO>> getAllCommentsByPostId(@PathVariable Long postId) {
+        List<CommentDTO> comments = commentService.getAllCommentsByPostId(postId);
+        return ResponseEntity.ok(comments);
     }
 
 }
