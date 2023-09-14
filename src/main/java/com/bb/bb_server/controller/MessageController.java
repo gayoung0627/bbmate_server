@@ -18,14 +18,14 @@ public class MessageController {
     private final MessageService messageService;
     private final UserRepository userRepository;
 
-    @ApiOperation(value = "메시지 작성", notes = "새로운 메시지 작성")
+    @ApiOperation(value = "메시지 작성", notes = "POST 방식으로 새로운 메시지 작성")
     @PostMapping("/write")
     public ResponseEntity<MessageDTO> writeMessage(@RequestBody MessageDTO messageDTO) {
         MessageDTO savedMessage = messageService.write(messageDTO);
         return ResponseEntity.ok(savedMessage);
     }
 
-    @ApiOperation(value = "받은 메시지 조회", notes = "특정 사용자가 받은 메시지 조회")
+    @ApiOperation(value = "받은 메시지 조회", notes = "GET 방식으로 특정 사용자가 받은 메시지 조회")
     @GetMapping("/received/{userId}")
     public ResponseEntity<List<MessageDTO>> getReceivedMessages(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
@@ -35,7 +35,7 @@ public class MessageController {
         return ResponseEntity.ok(receivedMessages);
     }
 
-    @ApiOperation(value = "받은 메시지 삭제", notes = "받은 메시지 삭제")
+    @ApiOperation(value = "받은 메시지 삭제", notes = "DELETE 방식으로 받은 메시지 삭제")
     @DeleteMapping("/received/{userId}/{messageId}")
     public ResponseEntity<String> deleteReceivedMessage(
             @PathVariable Long userId,
@@ -47,7 +47,7 @@ public class MessageController {
         return ResponseEntity.ok(result);
     }
 
-    @ApiOperation(value = "보낸 메시지 조회", notes = "특정 사용자가 보낸 메시지 조회")
+    @ApiOperation(value = "보낸 메시지 조회", notes = "GET 방식으로 특정 사용자가 보낸 메시지 조회")
     @GetMapping("/sent/{userId}")
     public ResponseEntity<List<MessageDTO>> getSentMessages(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
@@ -57,7 +57,7 @@ public class MessageController {
         return ResponseEntity.ok(sentMessages);
     }
 
-    @ApiOperation(value = "보낸 메시지 삭제", notes = "보낸 메시지 삭제")
+    @ApiOperation(value = "보낸 메시지 삭제", notes = "DELETE 방식으로 보낸 메시지 삭제")
     @DeleteMapping("/sent/{userId}/{messageId}")
     public ResponseEntity<String> deleteSentMessage(
             @PathVariable Long userId,

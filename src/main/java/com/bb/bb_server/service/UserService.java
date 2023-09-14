@@ -101,7 +101,7 @@ public class UserService{
         String username = authentication.getName();
         User user = userRepository.findByUsername(username).orElseThrow();
         if (user != null) {
-            return user.getId(); // 사용자 ID 반환
+            return user.getId();
         } else {
             throw new IllegalArgumentException("User not found");
         }

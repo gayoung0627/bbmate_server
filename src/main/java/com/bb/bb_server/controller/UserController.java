@@ -120,7 +120,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "Find User by Nickname GET", notes = "GET 방식으로 닉네임으로 회원 정보 찾기")
-    @GetMapping("/findUser/{nickname}")
+    @GetMapping("/find/{nickname}")
     public ResponseEntity<?> findUserByNickname(@PathVariable String nickname) {
         try {
             User user = userService.findUserByNickname(nickname);
@@ -137,13 +137,6 @@ public class UserController {
             errorMap.put("valid_" + error.getField(), error.getDefaultMessage());
         }
         return errorMap;
-    }
-
-
-
-    @GetMapping("/login")
-    public void getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
-        System.out.println(userDetails.getUsername());
     }
 
 

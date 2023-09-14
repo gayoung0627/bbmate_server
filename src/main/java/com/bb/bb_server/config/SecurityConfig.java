@@ -21,6 +21,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -41,7 +47,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests(request ->
                         request.antMatchers(HttpMethod.OPTIONS, "/**/*").permitAll()
-                                .antMatchers("/api/users/login", "/api/users/password", "/api/users/signup", "/api/**").permitAll()
+                                .antMatchers("/api/users/login", "/api/users/password", "/api/users/signup/**", "/api/users/find/**").permitAll()
+                                .antMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                                .antMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                                .antMatchers(HttpMethod.GET, "/api/likes/**").permitAll()
                                 .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
                                 .anyRequest().authenticated()
                 )
@@ -74,6 +83,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         PathRequest.toStaticResources().atCommonLocations()
                 )
         ;
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
 
